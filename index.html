@@ -1,0 +1,27 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, shrink-to-fit=no">
+	<title>billiard simulator</title>
+	<meta name="theme-color" content="#173729">
+	<style>
+		#field {opacity: 0; transition: opacity 0.2s}
+		html, body {margin: 0; overflow: hidden; background-color: #173729;}
+		#overlay {opacity: 1; transition: opacity 0.2s;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #fff;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center}
+	</style>
+</head>
+
+<body style="">
+	<canvas id="field"></canvas>
+	<div id="overlay">
+		<h1 style="display: none">Billiard Simulator</h1>
+		<h2>Loading...</h2>
+		<p>click where you want the ball to roll</p>
+	</div>
+</body>
+
+<script src="js/three.js"></script>
+<script src="js/ball.js"></script>
+<script src="js/algorithm.js" type="module"></script>
+
+</html>
