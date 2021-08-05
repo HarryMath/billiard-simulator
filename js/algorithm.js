@@ -1,4 +1,4 @@
-//import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+// import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
 
 class Game {
     mainBall
@@ -128,21 +128,30 @@ class Game {
         this.textures = {
             fieldTexture: 'img/green.png',
             boardsTexture: 'img/wood4.jpg',
-            boardsRoughnessMap: 'img/wood.jpg'
+            boardsRoughnessMap: 'img/wood.jpg',
+            holeTexture: 'img/hole.png'
         }
-        let loader = new THREE.TextureLoader()
-        loader.load(this.textures.fieldTexture, texture => {
-            this.textures.fieldTexture = texture
-            loader.load(this.textures.boardsTexture, texture => {
-                this.textures.boardsTexture = texture
-                loader.load(this.textures.boardsRoughnessMap, texture => {
-                    this.textures.boardsRoughnessMap = texture
-                    this.setUpBackground()
-                    this.reflectionCamera.update(this.renderer, this.scene)
-                    this.setUpBoards()
-                    this.setUpInsideBoards()
-                    this.generateBalls()
-                    this.textures = undefined
+        const loader = new THREE.TextureLoader()
+        loader.setCrossOrigin('anonymous')
+        loader.load(this.textures.fieldTexture, texture1 => {
+            this.textures.fieldTexture = texture1
+            increaseLoadedObjects();
+            loader.load(this.textures.boardsTexture, texture2 => {
+                this.textures.boardsTexture = texture2
+                increaseLoadedObjects();
+                loader.load(this.textures.holeTexture, texture3 => {
+                    this.textures.holeTexture = texture3;
+                    increaseLoadedObjects();
+                    loader.load(this.textures.boardsRoughnessMap, texture4 => {
+                        this.textures.boardsRoughnessMap = texture4
+                        increaseLoadedObjects();
+                        this.setUpBackground()
+                        this.reflectionCamera.update(this.renderer, this.scene)
+                        this.setUpBoards()
+                        this.setUpInsideBoards()
+                        this.generateBalls()
+                        this.textures = undefined
+                    })
                 })
             })
         })
@@ -153,17 +162,63 @@ class Game {
         texture.wrapS = THREE.RepeatWrapping
         texture.wrapT = THREE.RepeatWrapping
         texture.repeat.set(6, Math.round(6 * window.innerHeight / window.innerWidth))
-        const geometry = new THREE.PlaneGeometry(
+        let geometry = new THREE.PlaneGeometry(
             this.fieldWidth,
-            this.fieldHeight, 2, 2);
-        const material = new THREE.MeshStandardMaterial({
+            this.fieldHeight, 2, 2)
+        let material = new THREE.MeshStandardMaterial({
             map: texture,
             roughness: 1,
-            metalness: 0.5
+            metalness: 0.5,
         });
         const plane = new THREE.Mesh(geometry, material);
         plane.receiveShadow = true
         this.scene.add(plane);
+
+        texture = this.textures.holeTexture
+        geometry = new THREE.PlaneGeometry(
+            this.ballSize * 5.75,
+            this.ballSize * 5.75, 2, 2)
+        material = new THREE.MeshStandardMaterial({
+            map: texture,
+            roughness: 1,
+            metalness: 0.5,
+            transparent: true
+        });
+        let hole = new THREE.Mesh(geometry, material)
+        hole.position.set(
+            this.fieldWidth / 2 - this.ballSize * 2.5,
+            this.fieldHeight / 2 - this.ballSize * 2.5, 0.01)
+        this.scene.add(hole);
+        hole = new THREE.Mesh(geometry, material)
+        hole.position.set(
+            - this.fieldWidth / 2 + this.ballSize * 2.5,
+            this.fieldHeight / 2 - this.ballSize * 2.5, 0.01)
+        this.scene.add(hole);
+        hole = new THREE.Mesh(geometry, material)
+        hole.position.set(
+            - this.fieldWidth / 2 + this.ballSize * 2.5,
+            - this.fieldHeight / 2 + this.ballSize * 2.5, 0.01)
+        this.scene.add(hole);hole = new THREE.Mesh(geometry, material)
+        hole.position.set(
+            this.fieldWidth / 2 - this.ballSize * 2.5,
+            - this.fieldHeight / 2 + this.ballSize * 2.5, 0.01)
+        this.scene.add(hole);
+        if (window.innerWidth >= window.innerHeight) {
+            hole = new THREE.Mesh(geometry, material)
+            hole.position.set(0, -this.fieldHeight / 2 + this.boardsWidth / 1.8, 0.01)
+            this.scene.add(hole);
+            hole = new THREE.Mesh(geometry, material)
+            hole.position.set(0, this.fieldHeight / 2 - this.boardsWidth / 1.8, 0.01)
+            this.scene.add(hole);
+        } else {
+            hole = new THREE.Mesh(geometry, material)
+            hole.position.set(-this.fieldWidth / 2 + this.boardsWidth / 1.8, 0, 0.01)
+            this.scene.add(hole);
+            hole = new THREE.Mesh(geometry, material)
+            hole.position.set(this.fieldWidth / 2 - this.boardsWidth / 1.8, 0, 0.01)
+            this.scene.add(hole);
+        }
+
     }
 
     setUpBoards() {
@@ -223,7 +278,7 @@ class Game {
         const board = new THREE.Mesh(geometry, material)
         board.castShadow = true;
         if (window.innerWidth < window.innerHeight) {
-            board.rotateZ(Math.PI/2)
+            board.rotateZ(Math.PI / 2)
         }
         this.scene.add(board);
         const board2 = board.clone()
@@ -320,11 +375,13 @@ class Game {
     }
 
     generateBalls() {
-        let loader = new THREE.TextureLoader()
+        const loader = new THREE.TextureLoader()
+        loader.setCrossOrigin('anonymous')
         let ballsLoadedCounter = 0
         for (let i = 1; i <= 15; i++) {
             loader.load(`img/ball${i}.png`,
                 texture => {
+                    increaseLoadedObjects();
                     let position = this.getNextBallPosition(ballsLoadedCounter + 1)
                     this.balls.push(
                         new Ball(
@@ -366,8 +423,9 @@ class Game {
     }
 
     loadLastBall(loader) {
-        loader.load(`img/main.png`,
+        loader.load('img/main.png',
             texture => {
+                increaseLoadedObjects()
                 this.mainBall = new Ball(
                     this.scene,
                     texture,
@@ -407,8 +465,13 @@ class Game {
     }
 }
 
-window.render = function () {
-    game.render()
+const progressElement = document.getElementById('progress')
+const totalObjects = 20
+let loadedObjects = 0
+
+function increaseLoadedObjects() {
+    loadedObjects++;
+    progressElement.innerHTML = Math.round(loadedObjects / totalObjects * 100) + '%';
 }
 
 window.game = new Game(
@@ -418,6 +481,9 @@ window.game = new Game(
     50, // camera view width in degrees
     false, // is perspective camera
 )
+window.render = function () {
+    game.render()
+}
 
 
 function handleClick(x, y) {
@@ -434,7 +500,7 @@ function handleClick(x, y) {
     }
 }
 
-function startGame() {
+window.startGame = function () {
     setTimeout(() => {
         document.getElementById('field').style.cssText = 'opacity: 1'
     }, 3000)
